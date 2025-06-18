@@ -1,1 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>Chatbot Matchstaff</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="chat-container">
+    <h2>Chatbot de Matchstaff</h2>
+    <div id="chat"></div>
+    <div id="loading" class="hidden">Cargando...</div>
+  </div>
+  <script>
+    const apiUrl = "https://<TU_BACKEND>.onrender.com"; // url de tu app Flask
+
+    const chat = document.getElementById("chat");
+    const loading = document.getElementById("loading");
+    let answers = {};
+
+    async function startChat() {
+      loading.classList.remove("hidden");
+      const resp = await fetch(apiUrl + "/get_questions");
+      const preguntas = await resp.json();
+      loading.classList.add("hidden");
+      ask(0, preguntas);
+    }
+
+    function ask(idx, preguntas) {
+      if (idx < preguntas.length) {
+        const q = preguntas[idx];
+
+        const row = document.createElement("div");
+        row.className = "row";
+        const label = document.createElement("div");
+        label.className = "label";
+        label.innerText = q.pregunta;
+        const input = document.createElement("input");
+        input.className = "input";
+        input.onkeypress = function(e) {
+          if (e.key === "Enter" && input.value.trim()) {
+            answers[q.id] = input.value.trim();
+            row.removeChild(input);
+            ask(idx+1, preguntas);
+          }
+        };
+
+        row.appendChild(label);
+        row.appendChild(input);
+        chat.appendChild(row);
+        input.focus();
+
+      } else {
+        loading.classList.remove("hidden");
+        fetch(apiUrl + "/submit_answers", {
+          method: "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify(answers)
+        })
+        .then(r => r.json())
+        .then(r => {
+          loading.classList.add("hidden");
+          const msg = document.createElement("p");
+          msg.innerText = r.message;
+          chat.appendChild(msg);
+        });
+      }
+    }
+
+    startChat();
+  </script>
+</body>
+</html>
 
