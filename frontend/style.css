@@ -1,1 +1,22 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f7f7f7;
+}
+.chat-container {
+  max-width: 400px;
+  margin: 50px auto;
+  background: white;
+  padding: 20px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.row { margin-bottom: 15px; }
+.label { margin-bottom: 5px; font-weight: bold; }
+.input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+.hidden { display: none; }
 
