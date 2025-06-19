@@ -1,63 +1,42 @@
 import os
-import requests
+import gspread
+from google.oauth2.service_account import Credentials
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app)
 
-questions = [
-    {"id": "nombre", "pregunta": "¿Cuál es tu nombre completo?"},
-    {"id": "edad", "pregunta": "¿Qué edad tienes?"},
-    {"id": "escolaridad", "pregunta": "¿Cuál es tu escolaridad?"},
-    {"id": "colonia", "pregunta": "¿En qué colonia vives?"},
-    {"id": "tiempo_kelloggs", "pregunta": "¿A cuánto tiempo está la empresa Kellogg’s desde tu casa? Por el momento no contamos con transporte."},
-    {"id": "experiencia", "pregunta": "Cuéntame sobre tu experiencia laboral."},
-    {"id": "ultimo_trabajo", "pregunta": "¿Dónde fue tu último trabajo y por qué se terminó?"},
-    {"id": "sueldo_anterior", "pregunta": "¿Cuánto ganabas en tu último trabajo?"},
-    {"id": "mayor_experiencia", "pregunta": "¿Cuál consideras que es tu mayor experiencia en la industria?"}
-]
+# Carga credenciales JSON desde archivo o variable de entorno
+# Para Render puedes guardar el JSON como variable de entorno (por ejemplo, GOOGLE_CREDENTIALS_JSON)
+# Aquí ejemplo leyendo archivo local
+SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
+SERVICE_ACCOUNT_FILE = 'credentials.json'  # Asegúrate subir este archivo en Render o adaptar
 
-GOOGLE_SHEETS_WEBHOOK = "https://script.google.com/macros/s/AKfycbxo4FZDa9jGdOW01OwYkLDKIRWeDbZcqq9ZcMzyRDPauuYwn-jfr4r7Ydf4TbRRQR8ugQ/exec"  # <--- reemplaza con el tuyo
+creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+client = gspread.authorize(creds)
+
+SPREADSHEET_ID = "TU_ID_DE_SHEET"
+SHEET_NAME = "Hoja1"
 
 @app.route("/")
 def home():
     return "Chatbot Matchstaff backend activo"
-
-@app.route("/get_questions", methods=["GET"])
-def get_questions():
-    return jsonify(questions)
 
 @app.route("/guardar-en-sheets", methods=["POST"])
 def guardar_en_sheets():
     data = request.json.get("data", [])
     print("Datos a guardar:", data)
 
-    # Extraemos solo las respuestas en orden
-    respuestas = []
-    for item in data:
-        if isinstance(item, dict) and "respuesta" in item:
-            respuestas.append(item["respuesta"])
-        else:
-            respuestas.append(item)
-
     try:
-        response = requests.post(GOOGLE_SHEETS_WEBHOOK, json={"data": respuestas})
-        print("Respuesta del webhook:", response.text)
-        if response.status_code == 200:
-            return jsonify({"message": "Datos guardados correctamente en Sheets."})
-        else:
-            return jsonify({"message": "Error al guardar en Sheets."}), 500
-            
+        sheet = client.open_by_key(SPREADSHEET_ID).worksheet(SHEET_NAME)
+
+        # Suponiendo que data es lista de strings o similar
+        sheet.append_row(data)
+        return jsonify({"message": "Datos guardados correctamente en Sheets."})
     except Exception as e:
-        print("Error:", str(e))
-        return jsonify({"message": "Fallo la conexión con Google Sheets."}), 500
-
-
-@app.route("/submit_answers", methods=["POST"])
-def submit_answers():
-    print("Respuestas recibidas:", request.json)
-    return jsonify({"message": "¡Gracias! Recibimos tus respuestas y pronto te contactaremos."})
+        print("Error al guardar en Sheets:", e)
+        return jsonify({"message": "Error al guardar en Sheets.", "error": str(e)}), 500
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
