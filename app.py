@@ -16,7 +16,7 @@ SERVICE_ACCOUNT_FILE = 'credentials.json'  # Asegúrate subir este archivo en Re
 creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
 client = gspread.authorize(creds)
 
-SPREADSHEET_ID = "TU_ID_DE_SHEET"
+SPREADSHEET_ID = "1_4dlQIi1D4Ui_XejLz_GYTE3zc4hke54nBQ5KEkhnZs"
 SHEET_NAME = "Hoja1"
 
 @app.route("/")
