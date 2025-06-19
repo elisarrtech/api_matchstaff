@@ -5,7 +5,6 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-# Aquí defines tu lista de preguntas
 questions = [
     {"id": "nombre", "pregunta": "¿Cuál es tu nombre completo?"},
     {"id": "edad", "pregunta": "¿Qué edad tienes?"},
@@ -18,16 +17,9 @@ questions = [
     {"id": "mayor_experiencia", "pregunta": "¿Cuál consideras que es tu mayor experiencia en la industria?"}
 ]
 
-import os
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-
-app = Flask(__name__)
-CORS(app)
-
-questions = [
-    # tus preguntas aquí...
-]
+@app.route("/")
+def home():
+    return "Chatbot Matchstaff backend activo"
 
 @app.route("/get_questions", methods=["GET"])
 def get_questions():
@@ -35,13 +27,10 @@ def get_questions():
 
 @app.route("/submit_answers", methods=["POST"])
 def submit_answers():
-    print(request.json)
+    print("Respuestas recibidas:", request.json)
     return jsonify({"message": "¡Gracias! Recibimos tus respuestas y pronto te contactaremos."})
-
-@app.route("/")
-def home():
-    return "Chatbot Matchstaff backend activo"
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+
