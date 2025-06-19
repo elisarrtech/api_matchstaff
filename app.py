@@ -1,6 +1,5 @@
 import os
 import json
-import io
 import gspread
 from google.oauth2.service_account import Credentials
 from flask import Flask, request, jsonify
@@ -23,12 +22,10 @@ client = gspread.authorize(creds)
 SPREADSHEET_ID = "1_4dlQIi1D4Ui_XejLz_GYTE3zc4hke54nBQ5KEkhnZs"
 SHEET_NAME = "Hoja1"
 
-# Resto de tu app...
-
 questions = [
     {"id": "nombre", "pregunta": "¿Cuál es tu nombre completo?"},
     {"id": "edad", "pregunta": "¿Qué edad tienes?"},
-    {"id": "correo", "pregunta": "¿Cuál es tu correo electrónico?"}
+    {"id": "correo", "pregunta": "¿Cuál es tu correo electrónico?"},  # <-- aquí estaba faltando la coma
     {"id": "escolaridad", "pregunta": "¿Cuál es tu escolaridad?"},
     {"id": "colonia", "pregunta": "¿En qué colonia vives?"},
     {"id": "tiempo_kelloggs", "pregunta": "¿A cuánto tiempo está la empresa Kellogg’s desde tu casa? Por el momento no contamos con transporte."},
@@ -45,7 +42,7 @@ def home():
 
 @app.route("/get_questions", methods=["GET"])
 def get_questions():
-    # Devuelve las preguntas menos 'nombre' y 'tiempo_kelloggs' que se manejan en frontend
+    # Devuelve las preguntas menos 'nombre', 'tiempo_kelloggs' y 'vacante_interes' (que se manejan en frontend)
     filtered = [q for q in questions if q["id"] not in ["nombre", "tiempo_kelloggs", "vacante_interes"]]
     return jsonify(filtered)
 
@@ -66,7 +63,7 @@ def guardar_en_sheets():
 @app.route("/submit_answers", methods=["POST"])
 def submit_answers():
     print("Respuestas recibidas:", request.json)
-    return jsonify({"message": "¡Gracias! Recibimos tus respuestas y pronto te contactaremos. "})
+    return jsonify({"message": "¡Gracias! Recibimos tus respuestas y pronto te contactaremos."})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
