@@ -28,6 +28,7 @@ SHEET_NAME = "Hoja1"
 questions = [
     {"id": "nombre", "pregunta": "¿Cuál es tu nombre completo?"},
     {"id": "edad", "pregunta": "¿Qué edad tienes?"},
+    {"id": "correo", "pregunta": "¿Cuál es tu correo electrónico?"}
     {"id": "escolaridad", "pregunta": "¿Cuál es tu escolaridad?"},
     {"id": "colonia", "pregunta": "¿En qué colonia vives?"},
     {"id": "tiempo_kelloggs", "pregunta": "¿A cuánto tiempo está la empresa Kellogg’s desde tu casa? Por el momento no contamos con transporte."},
@@ -65,7 +66,7 @@ def guardar_en_sheets():
 @app.route("/submit_answers", methods=["POST"])
 def submit_answers():
     print("Respuestas recibidas:", request.json)
-    return jsonify({"message": "¡Gracias! Recibimos tus respuestas y pronto te contactaremos."})
+    return jsonify({"message": "¡Gracias! Recibimos tus respuestas y pronto te contactaremos. "})
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
