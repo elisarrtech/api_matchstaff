@@ -1,4 +1,12 @@
 from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    return "Chatbot Matchstaff backend activo"
+
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 
 app = Flask(__name__)
