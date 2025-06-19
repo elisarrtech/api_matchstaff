@@ -1,4 +1,6 @@
 import os
+import json
+import io
 import gspread
 from google.oauth2.service_account import Credentials
 from flask import Flask, request, jsonify
@@ -8,13 +10,20 @@ app = Flask(__name__)
 CORS(app)
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-SERVICE_ACCOUNT_FILE = 'credentials.json'  # Sube este JSON a Render o tu servidor
 
-creds = Credentials.from_service_account_file(SERVICE_ACCOUNT_FILE, scopes=SCOPES)
+# Leer credenciales desde variable de entorno
+credentials_json = os.getenv('GOOGLE_CREDENTIALS_JSON')
+if not credentials_json:
+    raise Exception("No se encontró la variable de entorno GOOGLE_CREDENTIALS_JSON")
+
+info = json.loads(credentials_json)
+creds = Credentials.from_service_account_info(info, scopes=SCOPES)
 client = gspread.authorize(creds)
 
 SPREADSHEET_ID = "1_4dlQIi1D4Ui_XejLz_GYTE3zc4hke54nBQ5KEkhnZs"
 SHEET_NAME = "Hoja1"
+
+# Resto de tu app...
 
 questions = [
     {"id": "nombre", "pregunta": "¿Cuál es tu nombre completo?"},
