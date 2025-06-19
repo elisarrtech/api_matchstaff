@@ -2,74 +2,79 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
   <title>Chatbot Matchstaff</title>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 30px; }
+    .chatbox { max-width: 600px; margin: auto; }
+    .question { margin-top: 20px; font-weight: bold; }
+    .input { margin-top: 10px; }
+    .button { margin-top: 20px; padding: 10px; }
+  </style>
 </head>
 <body>
-  <div class="chat-container">
-    <h2>Chatbot de Matchstaff</h2>
-    <div id="chat"></div>
-    <div id="loading" class="hidden">Cargando...</div>
+  <div class="chatbox">
+    <h2>Chatbot Matchstaff</h2>
+    <div id="questionBox" class="question">Cargando preguntas...</div>
+    <div class="input">
+      <input type="text" id="answerInput" placeholder="Escribe tu respuesta" style="width: 100%;">
+    </div>
+    <button class="button" onclick="nextQuestion()">Enviar</button>
   </div>
+
   <script>
-    const apiUrl = "https://matchstaff-backend.onrender.com";
+    const apiUrl = "https://chatboterr-3cbv.onrender.com";
+    let preguntas = [];
+    let respuestas = {};
+    let indice = 0;
 
-    const chat = document.getElementById("chat");
-    const loading = document.getElementById("loading");
-    let answers = {};
-
-    async function startChat() {
-      loading.classList.remove("hidden");
-      const resp = await fetch(apiUrl + "/get_questions");
-      const preguntas = await resp.json();
-      loading.classList.add("hidden");
-      ask(0, preguntas);
-    }
-
-    function ask(idx, preguntas) {
-      if (idx < preguntas.length) {
-        const q = preguntas[idx];
-
-        const row = document.createElement("div");
-        row.className = "row";
-        const label = document.createElement("div");
-        label.className = "label";
-        label.innerText = q.pregunta;
-        const input = document.createElement("input");
-        input.className = "input";
-        input.onkeypress = function(e) {
-          if (e.key === "Enter" && input.value.trim()) {
-            answers[q.id] = input.value.trim();
-            row.removeChild(input);
-            ask(idx+1, preguntas);
-          }
-        };
-
-        row.appendChild(label);
-        row.appendChild(input);
-        chat.appendChild(row);
-        input.focus();
-
-      } else {
-        loading.classList.remove("hidden");
-        fetch(apiUrl + "/submit_answers", {
-          method: "POST",
-          headers: {"Content-Type": "application/json"},
-          body: JSON.stringify(answers)
-        })
-        .then(r => r.json())
-        .then(r => {
-          loading.classList.add("hidden");
-          const msg = document.createElement("p");
-          msg.innerText = r.message;
-          chat.appendChild(msg);
-        });
+    async function cargarPreguntas() {
+      try {
+        const res = await fetch(`${apiUrl}/get_questions`);
+        preguntas = await res.json();
+        mostrarPregunta();
+      } catch (error) {
+        document.getElementById("questionBox").innerText = "Error cargando preguntas";
       }
     }
 
-    startChat();
+    function mostrarPregunta() {
+      if (indice < preguntas.length) {
+        document.getElementById("questionBox").innerText = preguntas[indice].pregunta;
+        document.getElementById("answerInput").value = "";
+        document.getElementById("answerInput").focus();
+      } else {
+        enviarRespuestas();
+      }
+    }
+
+    function nextQuestion() {
+      const respuesta = document.getElementById("answerInput").value.trim();
+      if (respuesta === "") return alert("Por favor escribe una respuesta.");
+
+      const id = preguntas[indice].id;
+      respuestas[id] = respuesta;
+      indice++;
+      mostrarPregunta();
+    }
+
+    async function enviarRespuestas() {
+      document.getElementById("questionBox").innerText = "Enviando respuestas...";
+      try {
+        const res = await fetch(`${apiUrl}/submit_answers`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(respuestas),
+        });
+        const data = await res.json();
+        document.getElementById("questionBox").innerText = data.message || "Gracias por tus respuestas.";
+        document.querySelector(".input").style.display = "none";
+        document.querySelector(".button").style.display = "none";
+      } catch (error) {
+        document.getElementById("questionBox").innerText = "Error al enviar respuestas.";
+      }
+    }
+
+    cargarPreguntas();
   </script>
 </body>
 </html>
-
