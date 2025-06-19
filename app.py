@@ -33,15 +33,26 @@ def guardar_en_sheets():
     data = request.json.get("data", [])
     print("Datos a guardar:", data)
 
+    # Extraemos solo las respuestas en orden
+    respuestas = []
+    for item in data:
+        if isinstance(item, dict) and "respuesta" in item:
+            respuestas.append(item["respuesta"])
+        else:
+            respuestas.append(item)
+
     try:
-        response = requests.post(GOOGLE_SHEETS_WEBHOOK, json={"data": data})
+        response = requests.post(GOOGLE_SHEETS_WEBHOOK, json={"data": respuestas})
+        print("Respuesta del webhook:", response.text)
         if response.status_code == 200:
             return jsonify({"message": "Datos guardados correctamente en Sheets."})
         else:
             return jsonify({"message": "Error al guardar en Sheets."}), 500
+            
     except Exception as e:
         print("Error:", str(e))
         return jsonify({"message": "Fallo la conexión con Google Sheets."}), 500
+
 
 @app.route("/submit_answers", methods=["POST"])
 def submit_answers():
