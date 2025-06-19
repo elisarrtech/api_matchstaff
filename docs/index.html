@@ -1,17 +1,38 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Chatbot Matchstaff</title>
-<style>
-  body { font-family: Arial, sans-serif; max-width: 600px; margin: 40px auto; padding: 0 20px; }
-  h2 { text-align: center; }
-  .question { font-size: 20px; margin: 20px 0 10px; }
-  input[type="text"] { width: 100%; padding: 10px; font-size: 16px; }
-  button { margin-top: 20px; padding: 10px 20px; font-size: 16px; cursor: pointer; }
-  #message { margin-top: 30px; font-weight: bold; }
-</style>
+  <meta charset="UTF-8" />
+  <title>Chatbot Matchstaff</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 0 20px;
+    }
+    h2 {
+      text-align: center;
+    }
+    .question {
+      font-size: 20px;
+      margin: 20px 0 10px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      font-size: 16px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 20px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    #message {
+      margin-top: 30px;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
   <h2>Chatbot Matchstaff</h2>
@@ -22,62 +43,62 @@
     <div id="message"></div>
   </div>
 
-<script>
-  const apiUrl = "https://chatboterr-3cbv.onrender.com"; // Cambia por tu URL backend si es diferente
+  <script>
+    const apiUrl = "https://chatboterr-3cbv.onrender.com"; // Cambia si usas otra URL
 
-  let questions = [];
-  let currentIndex = 0;
-  const answers = {};
+    let questions = [];
+    let currentIndex = 0;
+    const answers = {};
 
-  async function loadQuestions() {
-    try {
-      const res = await fetch(`${apiUrl}/get_questions`);
-      questions = await res.json();
+    async function loadQuestions() {
+      try {
+        const res = await fetch(`${apiUrl}/get_questions`);
+        questions = await res.json();
+        showQuestion();
+      } catch (e) {
+        document.getElementById('questionText').textContent = "Error cargando preguntas.";
+        document.getElementById('nextBtn').disabled = true;
+      }
+    }
+
+    function showQuestion() {
+      if (currentIndex < questions.length) {
+        document.getElementById('questionText').textContent = questions[currentIndex].pregunta;
+        document.getElementById('answerInput').value = "";
+        document.getElementById('answerInput').focus();
+      } else {
+        sendAnswers();
+      }
+    }
+
+    async function sendAnswers() {
+      document.getElementById('chatbot').innerHTML = "<p>Enviando respuestas...</p>";
+      try {
+        const res = await fetch(`${apiUrl}/submit_answers`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(answers)
+        });
+        const data = await res.json();
+        document.getElementById('chatbot').innerHTML = `<p>${data.message}</p>`;
+      } catch (e) {
+        document.getElementById('chatbot').innerHTML = "<p>Error enviando respuestas.</p>";
+      }
+    }
+
+    document.getElementById('nextBtn').addEventListener('click', () => {
+      const input = document.getElementById('answerInput');
+      const answer = input.value.trim();
+      if (!answer) {
+        alert('Por favor, escribe una respuesta.');
+        return;
+      }
+      answers[questions[currentIndex].id] = answer;
+      currentIndex++;
       showQuestion();
-    } catch (e) {
-      document.getElementById('questionText').textContent = "Error cargando preguntas.";
-      document.getElementById('nextBtn').disabled = true;
-    }
-  }
+    });
 
-  function showQuestion() {
-    if (currentIndex < questions.length) {
-      document.getElementById('questionText').textContent = questions[currentIndex].pregunta;
-      document.getElementById('answerInput').value = "";
-      document.getElementById('answerInput').focus();
-    } else {
-      sendAnswers();
-    }
-  }
-
-  async function sendAnswers() {
-    document.getElementById('chatbot').innerHTML = "<p>Enviando respuestas...</p>";
-    try {
-      const res = await fetch(`${apiUrl}/submit_answers`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(answers)
-      });
-      const data = await res.json();
-      document.getElementById('chatbot').innerHTML = `<p>${data.message}</p>`;
-    } catch (e) {
-      document.getElementById('chatbot').innerHTML = "<p>Error enviando respuestas.</p>";
-    }
-  }
-
-  document.getElementById('nextBtn').addEventListener('click', () => {
-    const input = document.getElementById('answerInput');
-    const answer = input.value.trim();
-    if (!answer) {
-      alert('Por favor, escribe una respuesta.');
-      return;
-    }
-    answers[questions[currentIndex].id] = answer;
-    currentIndex++;
-    showQuestion();
-  });
-
-  loadQuestions();
-</script>
+    loadQuestions();
+  </script>
 </body>
 </html>
